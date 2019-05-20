@@ -1432,6 +1432,15 @@ AudioProcessorParameter::~AudioProcessorParameter()
    #endif
 }
 
+void AudioProcessorParameter::setName (const String &newName)
+{
+    ScopedLock lock (listenerLock);
+
+    for (int i = listeners.size(); --i >= 0;)
+        if (auto* l = listeners[i])
+            l->parameterNameChanged (newName);
+}
+
 void AudioProcessorParameter::setValueNotifyingHost (float newValue)
 {
     setValue (newValue);
@@ -1498,6 +1507,7 @@ void AudioProcessorParameter::endChangeGesture()
 
 void AudioProcessorParameter::sendValueChangedMessageToListeners (float newValue)
 {
+    DBG("AudioProcessorParameter::sendValueChangedMessageToListeners");
     ScopedLock lock (listenerLock);
 
     for (int i = listeners.size(); --i >= 0;)

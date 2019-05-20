@@ -52,13 +52,16 @@ public:
     const String paramID;
 
     /** Provides access to the parameter's name. */
-    const String name;
+    String name;
 
     /** Provides access to the parameter's label. */
     const String label;
 
     /** Provides access to the parameter's category. */
     const Category category;
+
+public:
+    void setName(const String &name) override;
 
 private:
     String getName (int) const override;

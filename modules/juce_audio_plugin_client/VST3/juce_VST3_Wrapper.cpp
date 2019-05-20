@@ -331,7 +331,7 @@ public:
         paramMidiControllerOffset = 0x6d636d00  // 'mdm*'
     };
 
-    struct Param  : public Vst::Parameter
+    struct Param  : public Vst::Parameter, public AudioProcessorParameter::Listener
     {
         Param (JuceVST3EditController& editController, AudioProcessorParameter& p,
                Vst::ParamID vstParamID, Vst::UnitID vstUnitID,
@@ -366,9 +366,13 @@ public:
                 info.flags |= Vst::ParameterInfo::kIsBypass;
 
             valueNormalized = info.defaultNormalizedValue;
+
+            p.addListener(this);
         }
 
-        virtual ~Param() {}
+        virtual ~Param() {
+            param.removeListener(this);
+        }
 
         bool setNormalized (Vst::ParamValue v) override
         {
@@ -425,6 +429,25 @@ public:
 
         Vst::ParamValue toPlain (Vst::ParamValue v) const override       { return v; }
         Vst::ParamValue toNormalized (Vst::ParamValue v) const override  { return v; }
+
+        void parameterValueChanged(int parameterIndex, float newValue) override
+        {
+        }
+
+        void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override
+        {
+        }
+
+        void parameterNameChanged(const String &name) override
+        {
+            toString128 (info.title, name);
+
+            auto handler = owner.getComponentHandler();
+            if(handler)
+            {
+                handler->restartComponent (Steinberg::Vst::kParamTitlesChanged);
+            }
+        }
 
     private:
         JuceVST3EditController& owner;

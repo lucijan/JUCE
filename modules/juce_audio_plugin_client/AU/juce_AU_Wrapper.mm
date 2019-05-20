@@ -130,7 +130,8 @@ public:
           MusicDeviceBase (component,
                            (UInt32) AudioUnitHelpers::getBusCount (juceFilter.get(), true),
                            (UInt32) AudioUnitHelpers::getBusCount (juceFilter.get(), false)),
-          mapper (*juceFilter)
+          mapper (*juceFilter),
+          parameterNameChangeListener(this)
     {
         inParameterChangedCallback = false;
 
@@ -1957,6 +1958,8 @@ private:
                 param->setValue (initialValue);
 
             parameterValueStringArrays.add (stringValues);
+
+            param->addListener(&parameterNameChangeListener);
         }
 
         if ((bypassParam = juceFilter->getBypassParameter()) != nullptr)
@@ -2198,6 +2201,40 @@ private:
     {
         static_cast<JuceAU*> (inRefCon)->auPropertyListener (propId, scope, element);
     }
+
+private:
+    class ParameterNameChangeListener : public AudioProcessorParameter::Listener,
+                                        public AsyncUpdater
+    {
+    public:
+        ParameterNameChangeListener(JuceAU *owner) : m_owner(owner)
+        {
+        }
+
+        void parameterValueChanged(int parameterIndex, float newValue) override
+        {
+        }
+
+        void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override
+        {
+        }
+
+        void parameterNameChanged(const String &name) override
+        {
+            triggerAsyncUpdate();
+        }
+
+        void handleAsyncUpdate() override
+        {
+            m_owner->PropertyChanged(kAudioUnitProperty_ParameterList,
+                                     kAudioUnitScope_Global, 0);
+        }
+
+    private:
+        JuceAU *m_owner = nullptr;
+    };
+
+    ParameterNameChangeListener parameterNameChangeListener;
 
     JUCE_DECLARE_NON_COPYABLE (JuceAU)
 };

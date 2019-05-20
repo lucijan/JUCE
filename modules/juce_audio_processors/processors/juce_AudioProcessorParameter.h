@@ -104,6 +104,8 @@ public:
     */
     virtual String getName (int maximumStringLength) const = 0;
 
+    virtual void setName(const String &name);
+
     /** Some parameters may be able to return a label string for
         their units. For example "Hz" or "%".
     */
@@ -265,6 +267,8 @@ public:
             message thread.
         */
         virtual void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) = 0;
+
+        virtual void parameterNameChanged(const String &name) { }
     };
 
     /** Registers a listener to receive events when the parameter's state changes.
